@@ -2,6 +2,8 @@
 
 ### Andrea Fusiello, 2019
 
+![banner](http://www.diegm.uniud.it/fusiello/demo/toolkit/bannerCal.jpg)
+
 This toolkit is a collection of Matlab functions and scripts
 implementing two calibration techniques.
 
