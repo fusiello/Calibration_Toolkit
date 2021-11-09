@@ -51,7 +51,7 @@ customization.
 The checkerboardcan be downloaded from:
 <http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/pattern.pdf>.
 A pattern of AprilTags ready to be printed is included in the
-distribution. Both are to be printed at 100% in order to match the
+distribution. Both are to be printed at 100% scale in order to match the
 dimensions in mm reported in the scripts. 
 
 
