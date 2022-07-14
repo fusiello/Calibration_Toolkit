@@ -61,8 +61,8 @@ else
             % provide input here
             load([file.folder,'/m4']);  m4 = m4{i};
             % get points from the user in a given sequence
-            % disp('click on 4 points in a given order (see instructions)')
-            % figure(1),  m4 = ginput(4)';
+            %disp('click on 4 points in a given order (see instructions)')
+            %figure(1),  m4 = ginput(4)';
             
             % corner template
             T = 255*ones(size_pix);
