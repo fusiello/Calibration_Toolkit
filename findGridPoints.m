@@ -1,23 +1,20 @@
-function [m_grid,detected] = findGridPoints(I,M_grid,template,m4,corner_indices)
-% Find grid points in image I
-%
+function [m_grid,detected] = findGridPoints(I,M_grid,template,m4,indices4,scale)
+% Find grid points in image I that match template T
+% Transform I with H and look near positions determined by M_grid
+% 
 % Input:
 %       - I: image
 %       - M_grid: grid points in 2D object-space (mm)
-%       - method: {April, Checker, Rig}
-%       - i: image index
-%       - file: filename of the image being processed
+%       - template: {Butterfly, Corner}
+%       - m4: four points in the image
+%       - indices4: indices of the same 4 points in M_grid
+%       - scale: dimension in mm of 1 pixel of the rectified image
+%         The larger the scale, the smaller the rectified image, the faster
+%         the detection, the lower the accuray (.5 is a good default)
 % Output:
 %       - m_grid: grid points detected in image space (pixels)
 
 addpath('./aux_fun');
-
-% Find grid points in image I that match template T
-% Transform I with H and look near positions determined by M_grid
-
-scale = .5; % dimension in mm of 1 pixel of the rectified image
-% The larger the scale, the smaller the rectified image, the faster
-% the detection, the lower the accuray
 
 % scale M_grid (mm) to pixels
 M_grid = M_grid(1:2,:)./scale;
@@ -25,7 +22,7 @@ M_grid = M_grid(1:2,:)./scale;
 size_pix = round(M_grid(1,2) - M_grid(1,1));
 
 % initialization points  (match the ones clicked by the user)
-M4 = M_grid(:,corner_indices);
+M4 = M_grid(:,indices4);
 
 switch template
     case 'Butterfly'

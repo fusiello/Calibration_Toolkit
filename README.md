@@ -15,10 +15,10 @@ After installing the abovementioned dependencies, cd to the
 toolkit main directory and type either `runCalibRig`,
 `runCalibChecker`:
 
-- `runCalibRig` implements camera calibration by resection [1],
+- `CalibRig` implements camera calibration by resection [1],
    using a single picture of a non-planar reference object;
 
-- `runCalibChecker` implements the Sturm-Maybank-Zhang [2,3]
+- `CalibChecker` implements the Sturm-Maybank-Zhang [2,3]
   calibration algorithm, that uses multiple (~12) pictures of a
   planar object (a checkerboard). This is the same algorithm
   implemented in OpenCV and in the [Camera Calibration Toolbox
@@ -30,14 +30,14 @@ a rectified image; four points for each plane must be specified
 by the user in a predefined order by clicking on the image.
 A final bundle adjustment is run in both cases.
 
-As of 10/2020, the **NEW** script `runCalibApril` has been added:
+If the Mathworks Computer Vision Toolbox is installed, one can also use `runCalibApril`:
 
-- `runCalibApril`  implements the Sturm-Maybank-Zhang [2,3]
+- `CalibApril`  implements the Sturm-Maybank-Zhang [2,3]
   calibration algorithm, using
   [AprilTags] (https://april.eecs.umich.edu/software/apriltag)
   instead of a checkerboard, with the advantage of being completely
-  automatic. Detection is accomplished thanks to
-  [this](https://pypi.org/project/apriltag/) Python module. 
+  automatic. Detection is accomplished thanks to the `readAprilTag`
+  function of the Computer Vision Toolbox. 
 
 
 The `img_*` folders contain images of the calibration

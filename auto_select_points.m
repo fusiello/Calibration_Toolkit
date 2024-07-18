@@ -1,10 +1,9 @@
 function [pA, pB, props] = auto_select_points(I)
-
-% find 8 corners to initializerig calibration
+% find 8 corners to initialize rig calibration 
 % replaces user input
-% still EXPWERIMENTAL
+% still EXPERIMENTAL
 
-addpath('/Users/andrea/Dropbox/ComputerVision/Distribution/CalibrationToolkit/aux_fun  ');
+addpath('/Users/andrea/Dropbox/ComputerVision/Distribution/CalibrationToolkit/aux_fun');
 
 BW = ~ imbinarize(I,'adaptive','ForegroundPolarity','dark','Sensitivity',0.3);
 BW = imclearborder(BW);
@@ -15,7 +14,6 @@ BW = bwpropfilt(BW,'Eccentricity',[.65, .96]);
 BW = bwpropfilt(BW,'Solidity',[.53, 1]);
 BW = bwcircfilt(BW,[.14, .85]);  % Circularity
 BW = bwcustfilt(BW,32,.009);  % Solidity and Area together
-
 % BW = bwpropfilt(BW,'Solidity',32);
 
 figure,imshow(BW,'InitialMagnification','fit');
@@ -31,7 +29,7 @@ perim = vertcat(S.Perimeter);
 C = (4*pi*C)./perim.^2;
 
 %S = regionprops(BW,'Solidity');
-% C = vertcat(S.Solidity);
+%C = vertcat(S.Solidity);
 props(2,1) = min(C);
 props(2,2) = max(C);
 
@@ -40,12 +38,12 @@ C = vertcat(S.Eccentricity);
 props(3,1) = min(C);
 props(3,2) = max(C);
 
+%% stima una griglia di riferimento
+
 % calcola i centroidi dei blobs
 S = regionprops(BW,'centroid');
 C = vertcat(S.Centroid); % centers of all dots
 
-
-%% stima una griglia di riferimento
 max1=max(C(:,1));
 min1=min(C(:,1));
 max2=max(C(:,2));

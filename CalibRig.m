@@ -49,11 +49,11 @@ M_grid_face = M_grid(1:2,1:size(M_grid,2)/2);
 
 
 % do it twice with better estimate of corners
-for t =1:2
+for t =2:-1:1
     % detect points on each face
     m_grid=[];
     for i = 1:2
-        m_grid_face =  findGridPoints(I,M_grid_face,'Corner',m4{i},corner_indices);
+        m_grid_face =  findGridPoints(I,M_grid_face,'Corner',m4{i},corner_indices, 0.25*t);
         m_grid=[m_grid,m_grid_face];
         % better estimate of corners
         m4{i} = m_grid_face(:, corner_indices);

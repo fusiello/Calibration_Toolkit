@@ -1,43 +1,24 @@
-function [K, internal, I_out] = CalibChecker(datadir,input,NumIntPar,NumRadDist)
+
+function [K, internal, I_out] = CalibApril(datadir,NumIntPar,NumRadDist)
 % calibration  with the rig
 % datadir  where the images are
-% input = 'auto'| 'file' | 'user'  is where the input comes from 
 % NumIntPar  =  # of internal parameters (typ. 4 or 5)
 % NumRadDist =  # of radial distortion coefficients (typ. 1 or 2).
 
 
-if nargin < 4
+if nargin < 3
     NumIntPar  = 4; % # of internal parameters (typ. 4 or 5)
     NumRadDist = 1; % # of radial distortion coefficients (typ. 1 or 2).
 end
-if nargin < 2
-    input = 'file'; 
-end
+
 
 files = findImages(datadir);
 num_imgs = numel(files);
 
 % Generate world point coordinates for the pattern
-stepSize = 30; % side of the square in millimeters
-gridArrangement = [8,6];  % # rows by # columns
-M_grid  = generateGridPoints(gridArrangement, stepSize, 'Checker');
-corner_indices = [1,8,48,41];
-
-switch input
-    case 'auto'
-        disp('not implemented yet')
-    case 'file'
-        % this is only for testing, normally the user should provide input
-        load([datadir,'/m4']);
-    case 'user'
-        for i=1:num_imgs
-            % get points from the user anticlockwise fron the top-left
-            disp('click on 4 points in a given order (see instructions)')
-            I = imread([files(i).folder, '/', files(i).name]);
-            figure(1), imshow(I,[],'InitialMagnification','fit');
-            m4{i} = ginput(4)';
-        end
-end
+stepSize = 16; % side of the square in millimeters
+gridArrangement = [10,16];  % # rows by # columns
+M_grid  = generateGridPoints(gridArrangement, stepSize, 'April');
 
 % read images
 for i=1:num_imgs
@@ -50,8 +31,10 @@ for i=1:num_imgs
     end
     figure(1), imshow(I,[],'InitialMagnification','fit');
 
-    % detect grid points
-    m_grid{i} = findGridPoints(I, M_grid(1:2,:),'Butterfly',m4{i}, corner_indices,.5);
+    % detect grid points (tag corners)
+    [id,loc] = readAprilTag(I,"tag36h11");
+    assert(issorted(id));
+    m_grid{i} = reshape(permute(loc,[1 3 2]),[],size(loc,2),1)';
 
     figure(1), hold on;
     %plot(m_grid{i}(1,:), m_grid{i}(2,:), 'oc','MarkerSize',15);
@@ -105,10 +88,9 @@ internal.u_0        = K(1,3);
 internal.v_0        = K(2,3);
 internal.skew       = K(1,2);
 internal.radial     = kappa{1}';
-disp(' '); disp(internal);
 
 % correct the last input image
 % (use this as a template to correct other images)
 bb  = [1;1;size(I,2);size(I,1)];
 I_out = imwarp(double(I), @(x)rdx(kappa{1},x,K), bb);
-figure, imshow(I_out, []); title('Undistorted');
+
