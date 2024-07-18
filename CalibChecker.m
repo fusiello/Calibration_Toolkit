@@ -1,52 +1,76 @@
-clear
-close all
+function [K, internal, I_out] = CalibChecker(datadir,input,NumIntPar,NumRadDist)
+% calibration  with the rig
+% filename is the image of the rig
+% input = 'auto'| 'file' | 'user'  is where the input comes from 
+% NumIntPar  =  # of internal parameters (typ. 4 or 5)
+% NumRadDist =  # of radial distortion coefficients (typ. 1 or 2).
 
-NumIntPar  = 4; % # internal parameters (typ. 4 or 5)
-NumRadDist = 1; % # radial distortion coefficients (typ. 1 or 2).
 
-datadir = 'img_april'; % folder containing the images
+if nargin < 3
+    NumIntPar  = 4; % # of internal parameters (typ. 4 or 5)
+    NumRadDist = 1; % # of radial distortion coefficients (typ. 1 or 2).
+end
+if nargin < 2
+    input = 'file'; 
+end
+
+
+%datadir = 'img_checker'; % folder containing the images
 files = findImages(datadir);
 num_imgs = numel(files);
 
+% NumIntPar  = 4; % # of internal parameters (typ. 4 or 5)
+% NumRadDist = 1; % # of radial distortion coefficients (typ. 1 or 2).
+% input='file'; % where the input comes from
+
 % Generate world point coordinates for the pattern
-stepSize = 16; % side of the square in millimeters
-gridArrangement = [10,16];  % # rows by # columns
-M_grid  = generateGridPoints(gridArrangement, stepSize, 'April');
+stepSize = 30; % side of the square in millimeters
+gridArrangement = [8,6];  % # rows by # columns
+M_grid  = generateGridPoints(gridArrangement, stepSize, 'Checker');
+corner_indices = [1,8,48,41];
+
+switch input
+    case 'auto'
+        disp('not implemented yet')
+    case 'file'
+        % this is only for testing, normally the user should provide input
+        load([datadir,'/m4']);
+    case 'user'
+        for i=1:num_imgs
+            % get points from the user anticlockwise fron the top-left
+            disp('click on 4 points in a given order (see instructions)')
+            I = imread([files(i).folder, '/', files(i).name]);
+            figure(1), imshow(I,[],'InitialMagnification','fit');
+            m4{i} = ginput(4)';
+        end
+end
 
 % read images
 for i=1:num_imgs
     close all
-    
+
     fprintf('Processing img %d: %s ... \n', i, files(i).name);
     I = imread([files(i).folder, '/', files(i).name]);
     if size(I,3) > 1
         I = rgb2gray(I);
     end
     figure(1), imshow(I,[],'InitialMagnification','fit');
-    
-    % detect grid points (tag corners)
-   %  m_grid{i} = findGridPoints([],[],'April',[],files(i));
-   
 
- % Call pyhton script and return the results (tags corners)
-    [status, cmdout] = system(['./detectAprilTags.py  ' file.folder, '/', file.name]);
-    m_grid  = str2num(cmdout)';
-    if status>0
-        error('something wrong with detectAprilTags.py');
-    end
+    % detect grid points
+    m_grid{i} = findGridPoints(I, M_grid(1:2,:),'Butterfly',m4{i}, corner_indices);
 
     figure(1), hold on;
     %plot(m_grid{i}(1,:), m_grid{i}(2,:), 'oc','MarkerSize',15);
     scatter(m_grid{i}(1,:), m_grid{i}(2,:), [],lines(size(m_grid{i},2)),'+');
-    
+
     H_lin = hom_lin(m_grid{i}, M_grid(1:2,:));
     fprintf('\tHomography ___lin RMS error:\t %0.5g \n', ...
         rmse(sampson_hom(H_lin, M_grid(1:2,:), m_grid{i})));
-    
+
     H{i} = hom_nonlin(H_lin, m_grid{i}, M_grid(1:2,:));
     fprintf('\tHomography nonlin RMS error:\t %0.5g \n', ...
         rmse(sampson_hom(H{i}, M_grid(1:2,:), m_grid{i})));
-    
+
     m_est = htx(H{i}, M_grid(1:2,:));
     figure(1), scatter(m_est(1,:), m_est(2,:), [],lines(size(m_est,2)),'o');
     % plot(m_est(1,:),m_est(2,:),'+m','MarkerSize',15)
