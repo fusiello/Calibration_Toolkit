@@ -30,8 +30,10 @@ switch template
         T(1:ceil(size_pix/2), 1+ceil(size_pix/2):end ) = 0;
         T(1+ceil(size_pix/2):end, 1:ceil(size_pix/2) ) = 0;
     case 'Corner'
-        T = 255*ones(size_pix);
-        T(1:ceil(size_pix/2) , 1:ceil(size_pix/2) ) = 0;
+        % T = 255*ones(size_pix);
+        % T(1:ceil(size_pix/2) , 1:ceil(size_pix/2) ) = 0;
+        load('corner_template.mat')
+
     otherwise
         error('unrecognised template\n');
 end
@@ -71,6 +73,9 @@ detected = detected(:,assignment);
 %     end
 %
 
+% tiles = cutImageIntoTiles(If, detected', [20, 20]);
+% save tiles tiles
+
 % subpixel refinement
 for i = 1:length(detected)
 
@@ -98,3 +103,38 @@ title('Score')
 m_grid = htx(inv(H),detected + bb(1:2) -1 );
 end
 
+
+%%
+function tiles = cutImageIntoTiles(image, tilePositions, tileRad)
+% image: input image
+% tilePositions: Nx2 matrix containing the row and column positions for each tile
+% tileSize: Size of each tile [height, width]
+
+% Check if the input image is grayscale or RGB
+if size(image, 3) == 3
+    isRGB = true;
+else
+    isRGB = false;
+end
+
+% Initialize cell array to store tiles
+tiles = cell(size(tilePositions, 1), 1);
+
+% Cut tiles from the image and store in the cell array
+for i = 1:size(tilePositions, 1)
+    row = tilePositions(i, 2);
+    col = tilePositions(i, 1);
+
+    % Calculate the indices for the current tile
+    rowIndices = row-tileRad(1) : row + tileRad(1);
+    colIndices = col-tileRad(2) : col + tileRad(2);
+
+    % Extract the current tile from the image
+    if isRGB
+        tiles{i} = image(rowIndices, colIndices, :);
+    else
+        tiles{i} = image(rowIndices, colIndices);
+    end
+end
+
+end

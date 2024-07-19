@@ -30,7 +30,7 @@ figure(1), imshow(I,[],'InitialMagnification','fit');
 
 switch input
     case 'auto'
-        [m4{1}, m4{2}] = auto_select_points(I);
+        [m4{1}, m4{2}] = autoSelectPoints(I);
     case 'file'
         % this is only for testing, normally the user should provide input
         load([file.folder,'/m4']);

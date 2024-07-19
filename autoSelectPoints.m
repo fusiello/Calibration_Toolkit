@@ -1,4 +1,4 @@
-function [pA, pB, props] = auto_select_points(I)
+function [pA, pB, props] = autoSelectPoints(I)
 % find 8 corners to initialize rig calibration 
 % replaces user input
 % still EXPERIMENTAL

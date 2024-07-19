@@ -1,4 +1,4 @@
-clear
+test_global_ESC_uncalibratedclear
 close all
 
 NumIntPar  = 4; % # internal parameters (typ. 4 or 5)
