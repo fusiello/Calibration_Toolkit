@@ -1,10 +1,10 @@
-test_global_ESC_uncalibratedclear
+clear
 close all
 
 NumIntPar  = 4; % # internal parameters (typ. 4 or 5)
 NumRadDist = 1; % # radial distortion coefficients (typ. 1 or 2).
 
-datadir = 'img_april'; % folder containing the images
+datadir = 'img_ArUko/cam2'; % folder containing the images
 
 [K, internal, I_out] = CalibApril(datadir);
 disp(' '); disp(internal);

@@ -1,7 +1,7 @@
 function [K, internal, I_out] = CalibRig(filename,input,NumIntPar,NumRadDist)
 % calibration  with the rig
 % filename is the image of the rig
-% input = 'auto'| 'file' | 'user'  is where the input comes from 
+% input = 'auto'| 'file' | 'user'  is where the input comes from
 % NumIntPar  =  # of internal parameters (typ. 4 or 5)
 % NumRadDist =  # of radial distortion coefficients (typ. 1 or 2).
 
@@ -13,19 +13,23 @@ if nargin < 2
     input = 'auto'; % still experimental
 end
 
+rect_gsd = .2; %  dimension in mm of 1 pixel of the rectified image
+% it should match the actual GSD of the original images, but can be a
+% little bit larger (up to x10) thanks to subpixel detection
+
+[file.folder,file.name,ext] = fileparts(filename);
+
 % Generate world point coordinates for the pattern
 stepSize = 20; % side of the square in millimeters
 gridArrangement = [8,8];  % # rows by # columns
 M_grid  = generateGridPoints(gridArrangement, stepSize, 'Rig');
-
-[file.folder,file.name,ext] = fileparts(filename);
 
 % read  the (single) image
 fprintf('Processing img %s ... \n', file.name);
 I = imread([file.folder,'/',file.name,ext]);
 if size(I,3) > 1
     I = rgb2gray(I);
-end 
+end
 figure(1), imshow(I,[],'InitialMagnification','fit');
 
 switch input
@@ -40,6 +44,7 @@ switch input
             disp('click on 4 points in a given order (see instructions)')
             figure(1),  m4{i} = ginput(4)';
         end
+        save([file.folder,'/m4'],"m4");
 end
 
 % initialization points  (match the ones clicked by the user)
@@ -47,19 +52,17 @@ corner_indices = [64,8,1,57];
 
 M_grid_face = M_grid(1:2,1:size(M_grid,2)/2);
 
-
 % do it twice with better estimate of corners
-for t =2:-1:1
+for t = [10, 1]
     % detect points on each face
     m_grid=[];
     for i = 1:2
-        m_grid_face =  findGridPoints(I,M_grid_face,'Corner',m4{i},corner_indices, 0.25*t);
+        m_grid_face =  findGridPoints(I,M_grid_face,'Corner',m4{i},corner_indices, rect_gsd*t);
         m_grid=[m_grid,m_grid_face];
         % better estimate of corners
         m4{i} = m_grid_face(:, corner_indices);
     end
 end
-save([file.folder,'/m4'],"m4");
 
 % plot detected points
 figure(1), hold on;
@@ -90,8 +93,11 @@ legend('Detected','Reprojected')
 
 % 3D plot
 figure, plot3(M_grid(1,:),M_grid(2,:),M_grid(3,:),'+k'), hold on
-plotcam(P{1}, 50)
 xlabel('X'), ylabel('Y'), zlabel('Z')
+plotcam(P{1}, 50)
+[K,R,t]=krt( P{1} );
+[t1,t2] = gsd(K,norm(t),R);
+fprintf('GSD avg: \t %0.3g \n',(t1+t2)/2);
 
 % Put the internal parameters in a table for pretty printing
 K = krt(P{1});

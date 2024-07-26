@@ -34,7 +34,14 @@ for i=1:num_imgs
     % detect grid points (tag corners)
     [id,loc] = readAprilTag(I,"tag36h11");
     assert(issorted(id));
+
     m_grid{i} = reshape(permute(loc,[1 3 2]),[],size(loc,2),1)';
+
+    if  size(m_grid{i},2)  < gridArrangement(1) * gridArrangement(2) 
+        m_grid{i} = [];
+        continue
+    end
+
 
     figure(1), hold on;
     %plot(m_grid{i}(1,:), m_grid{i}(2,:), 'oc','MarkerSize',15);
@@ -54,6 +61,11 @@ for i=1:num_imgs
     legend('Detected','Reprojected')
 
 end
+
+H(cellfun(@isempty,H))=[];
+m_grid(cellfun(@isempty,m_grid))=[];
+num_imgs =  numel(H);
+
 
 %% All the homographies computed, ready to run calibSMZ
 [P_est,K_est] = calibSMZ(H);

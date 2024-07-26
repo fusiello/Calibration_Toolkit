@@ -1,27 +1,27 @@
-function [K, internal, I_out] = CalibChecker(datadir,input,NumIntPar,NumRadDist)
+function [K, internal, I_out] = CalibChecker(datadir, grid, input,NumIntPar,NumRadDist)
 % calibration  with the rig
 % datadir  where the images are
-% input = 'auto'| 'file' | 'user'  is where the input comes from 
+% input = 'auto'| 'file' | 'user'  is where the input comes from
 % NumIntPar  =  # of internal parameters (typ. 4 or 5)
 % NumRadDist =  # of radial distortion coefficients (typ. 1 or 2).
 
-
-if nargin < 4
+if nargin < 5
     NumIntPar  = 4; % # of internal parameters (typ. 4 or 5)
     NumRadDist = 1; % # of radial distortion coefficients (typ. 1 or 2).
 end
-if nargin < 2
-    input = 'file'; 
+if nargin < 3
+    input = 'file';
 end
+
+rect_gsd = .25; %  dimension in mm of 1 pixel of the rectified image
+% it should match the actual GSD of the original images, but it can be a
+% little bit larger (up to x10) thanks to subpixel detection
 
 files = findImages(datadir);
 num_imgs = numel(files);
 
 % Generate world point coordinates for the pattern
-stepSize = 30; % side of the square in millimeters
-gridArrangement = [8,6];  % # rows by # columns
-M_grid  = generateGridPoints(gridArrangement, stepSize, 'Checker');
-corner_indices = [1,8,48,41];
+M_grid  = generateGridPoints([grid.rows,grid.cols], grid.stepmm, 'Checker');
 
 switch input
     case 'auto'
@@ -37,6 +37,7 @@ switch input
             figure(1), imshow(I,[],'InitialMagnification','fit');
             m4{i} = ginput(4)';
         end
+        save([files(i).folder,'/m4'],"m4");
 end
 
 % read images
@@ -51,7 +52,7 @@ for i=1:num_imgs
     figure(1), imshow(I,[],'InitialMagnification','fit');
 
     % detect grid points
-    m_grid{i} = findGridPoints(I, M_grid(1:2,:),'Butterfly',m4{i}, corner_indices,.5);
+    m_grid{i} = findGridPoints(I, M_grid(1:2,:),'Butterfly',m4{i}, grid.corners, rect_gsd);
 
     figure(1), hold on;
     %plot(m_grid{i}(1,:), m_grid{i}(2,:), 'oc','MarkerSize',15);
@@ -70,6 +71,7 @@ for i=1:num_imgs
     % plot(m_est(1,:),m_est(2,:),'+m','MarkerSize',15)
     legend('Detected','Reprojected')
 
+    m4{i} = m_grid{i}(:, grid.corners);
 end
 
 %% All the homographies computed, ready to run calibSMZ
@@ -91,10 +93,15 @@ fprintf('BA reproj RMS error:\t %0.5g \n', ...
 
 % 3D plot
 figure, plot3(M(1,:),M(2,:),M(3,:),'+k'), hold on
+xlabel('X'), ylabel('Y'), zlabel('Z')
 for i = 1: length(P)
     plotcam(P{i}, 50)
+    [K,R,t]=krt( P{i} );
+    [t1, t2] = gsd(K,norm(t),R);
+    gsds(i) = (t1+t2)/2;
 end
-xlabel('X'), ylabel('Y'), zlabel('Z')
+fprintf('GSD min max: \t %0.3g %0.3g\n',min(gsds), max(gsds));
+
 
 % Put the internal parameters in a table for pretty printing
 K = krt(P{1});
@@ -105,10 +112,10 @@ internal.u_0        = K(1,3);
 internal.v_0        = K(2,3);
 internal.skew       = K(1,2);
 internal.radial     = kappa{1}';
-disp(' '); disp(internal);
 
 % correct the last input image
 % (use this as a template to correct other images)
 bb  = [1;1;size(I,2);size(I,1)];
 I_out = imwarp(double(I), @(x)rdx(kappa{1},x,K), bb);
-figure, imshow(I_out, []); title('Undistorted');
+%figure, imshow(I_out, []); title('Undistorted');
+
