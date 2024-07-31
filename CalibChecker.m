@@ -19,6 +19,7 @@ rect_gsd = .25; %  dimension in mm of 1 pixel of the rectified image
 
 files = findImages(datadir);
 num_imgs = numel(files);
+num_imgs = numel(files);
 
 % Generate world point coordinates for the pattern
 M_grid  = generateGridPoints([grid.rows,grid.cols], grid.stepmm, 'Checker');
@@ -74,6 +75,10 @@ for i=1:num_imgs
     m4{i} = m_grid{i}(:, grid.corners);
 end
 
+H(cellfun(@isempty,H))=[];
+m_grid(cellfun(@isempty,m_grid))=[];
+num_imgs =  numel(H);
+
 %% All the homographies computed, ready to run calibSMZ
 [P_est,K_est] = calibSMZ(H);
 
@@ -101,7 +106,6 @@ for i = 1: length(P)
     gsds(i) = (t1+t2)/2;
 end
 fprintf('GSD min max: \t %0.3g %0.3g\n',min(gsds), max(gsds));
-
 
 % Put the internal parameters in a table for pretty printing
 K = krt(P{1});

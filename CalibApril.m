@@ -1,12 +1,12 @@
 
-function [K, internal, I_out] = CalibApril(datadir,NumIntPar,NumRadDist)
+function [K, internal, I_out] = CalibApril(datadir,grid, NumIntPar,NumRadDist)
 % calibration  with the rig
 % datadir  where the images are
 % NumIntPar  =  # of internal parameters (typ. 4 or 5)
 % NumRadDist =  # of radial distortion coefficients (typ. 1 or 2).
 
 
-if nargin < 3
+if nargin < 4
     NumIntPar  = 4; % # of internal parameters (typ. 4 or 5)
     NumRadDist = 1; % # of radial distortion coefficients (typ. 1 or 2).
 end
@@ -16,9 +16,7 @@ files = findImages(datadir);
 num_imgs = numel(files);
 
 % Generate world point coordinates for the pattern
-stepSize = 16; % side of the square in millimeters
-gridArrangement = [10,16];  % # rows by # columns
-M_grid  = generateGridPoints(gridArrangement, stepSize, 'April');
+M_grid  = generateGridPoints([grid.rows,grid.cols], grid.stepmm, 'April');
 
 % read images
 for i=1:num_imgs
@@ -37,7 +35,7 @@ for i=1:num_imgs
 
     m_grid{i} = reshape(permute(loc,[1 3 2]),[],size(loc,2),1)';
 
-    if  size(m_grid{i},2)  < gridArrangement(1) * gridArrangement(2) 
+    if  size(m_grid{i},2)  < grid.rows*grid.cols
         m_grid{i} = [];
         continue
     end
