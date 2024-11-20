@@ -10,7 +10,7 @@ if nargin < 3
     NumRadDist = 1; % # of radial distortion coefficients (typ. 1 or 2).
 end
 if nargin < 2
-    input = 'auto'; % still experimental
+    input = 'user'; 
 end
 
 rect_gsd = .2; %  dimension in mm of 1 pixel of the rectified image
@@ -34,7 +34,7 @@ figure(1), imshow(I,[],'InitialMagnification','fit');
 
 switch input
     case 'auto'
-        [m4{1}, m4{2}] = autoSelectPoints(I);
+        [m4{1}, m4{2}] = autoSelectPoints(I); % still experimental
     case 'file'
         % this is only for testing, normally the user should provide input
         load([file.folder,'/m4']);
